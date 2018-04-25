@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		70C6E8F32090AA5A00DAB355 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 70C6E8F22090AA5A00DAB355 /* main.c */; };
+		70C6E8FC2090AABE00DAB355 /* job_control.c in Sources */ = {isa = PBXBuildFile; fileRef = 70C6E8FA2090AABE00DAB355 /* job_control.c */; };
+		70C6E8FD2090AABE00DAB355 /* Shell_project.c in Sources */ = {isa = PBXBuildFile; fileRef = 70C6E8FB2090AABE00DAB355 /* Shell_project.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +25,9 @@
 
 /* Begin PBXFileReference section */
 		70C6E8EF2090AA5A00DAB355 /* Copinya */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Copinya; sourceTree = BUILT_PRODUCTS_DIR; };
-		70C6E8F22090AA5A00DAB355 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		70C6E8F92090AABE00DAB355 /* job_control.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = job_control.h; sourceTree = "<group>"; };
+		70C6E8FA2090AABE00DAB355 /* job_control.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = job_control.c; sourceTree = "<group>"; };
+		70C6E8FB2090AABE00DAB355 /* Shell_project.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Shell_project.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +60,9 @@
 		70C6E8F12090AA5A00DAB355 /* Copinya */ = {
 			isa = PBXGroup;
 			children = (
-				70C6E8F22090AA5A00DAB355 /* main.c */,
+				70C6E8FA2090AABE00DAB355 /* job_control.c */,
+				70C6E8F92090AABE00DAB355 /* job_control.h */,
+				70C6E8FB2090AABE00DAB355 /* Shell_project.c */,
 			);
 			path = Copinya;
 			sourceTree = "<group>";
@@ -118,7 +123,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				70C6E8F32090AA5A00DAB355 /* main.c in Sources */,
+				70C6E8FD2090AABE00DAB355 /* Shell_project.c in Sources */,
+				70C6E8FC2090AABE00DAB355 /* job_control.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
