@@ -15,8 +15,11 @@ To compile and run the program:
 **/
 
 #include "job_control.h"   // remember to compile with module job_control.c 
+#include <libgen.h>
+#include <string.h>
 
 #define MAX_LINE 256 /* 256 chars per line, per command, should be enough. */
+#define COPINYA "\033[31mcopinya\033[0m"
 
 // -----------------------------------------------------------------------
 //                            MAIN          
@@ -31,11 +34,13 @@ int main(void) {
 	int status;             /* status returned by wait */
 	enum status status_res; /* status processed by analyze_status() */
 	int info;				/* info processed by analyze_status() */
-	char* status_res_str;
-	printf("Welcome to \033[31mCopinya\033[0m!\n\n");
+	char* status_res_str, *aux;
+	printf("Welcome to %s shell!\n\n", COPINYA);
 	while (1)   /* Program terminates normally inside get_command() after ^D is typed*/
 	{   		
-		printf("%s@\033[31mcopinya\033[0m:\x1b[36m%s\033[32m$\x1b[0m", getenv("USER"),getenv("PWD"));
+		aux = strdup(getenv("PWD"));
+		printf("%s@%s:%s$ ", getenv("USER"), COPINYA, basename(aux));
+		free(aux);
 		fflush(stdout);
 		get_command(inputBuffer, MAX_LINE, args, &background);  /* get next command */
 
