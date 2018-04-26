@@ -35,7 +35,19 @@ int main(void) {
 	enum status status_res; /* status processed by analyze_status() */
 	int info;				/* info processed by analyze_status() */
 	char* status_res_str, *aux;
-	printf("Welcome to %s shell!\n\n", COPINYA);
+	printf("\n"
+"        .-\"; ! ;\"-.\n"
+"      .'!  : | :  !`.\n"
+"     /\\  ! : ! : !  /\\ \n"
+"    /\\ |  ! :|: !  | /\\ \n"
+"   (  \\ \\ ; :!: ; / /  )\n"
+"  ( `. \\ | !:|:! | / .' )      Welcome to\n"
+"  (`. \\ \\ \\!:|:!/ / / .')      \033[31mcopinya\033[0m shell!\n"
+"   \\ `.`.\\ |!|! |/,'.' /\n"
+"    `._`.\\\\!!!// .'_.'\n"
+"       `.`.\\|//.'.'\n"
+"        |`._`n'_.'|  \n"
+"        \"----^----\"\n\n");
 	while (1)   /* Program terminates normally inside get_command() after ^D is typed*/
 	{   		
 		aux = strdup(getenv("PWD"));
@@ -43,8 +55,6 @@ int main(void) {
 		free(aux);
 		fflush(stdout);
 		get_command(inputBuffer, MAX_LINE, args, &background);  /* get next command */
-
-		
 		if(args[0]==NULL) continue;   // if empty command
         pid_fork = fork();
         if(pid_fork){
