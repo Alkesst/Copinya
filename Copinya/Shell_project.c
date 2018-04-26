@@ -35,7 +35,7 @@ int main(void) {
 	printf("Welcome to \033[31mCopinya\033[0m!\n\n");
 	while (1)   /* Program terminates normally inside get_command() after ^D is typed*/
 	{   		
-		printf("%s@\033[31mcopinya\033[32m$\033[0m ", "alec");
+		printf("%s@\033[31mcopinya\033[0m:\x1b[36m%s\033[32m$\x1b[0m", getenv("USER"),getenv("PWD"));
 		fflush(stdout);
 		get_command(inputBuffer, MAX_LINE, args, &background);  /* get next command */
 
