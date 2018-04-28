@@ -48,8 +48,8 @@ int main(void) {
 "       `.`.\\|//.'.'\n"
 "        |`._`n'_.'|  \n"
 "        \"----^----\"\n\n");
-	while (1)   /* Program terminates normally inside get_command() after ^D is typed*/
-	{   		
+	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/   		
+		ignore_terminal_signals();
 		aux = strdup(getenv("PWD"));
 		printf("%s@%s:%s$ ", getenv("USER"), COPINYA, basename(aux));
 		free(aux);
@@ -60,6 +60,7 @@ int main(void) {
         if(pid_fork){
         	if(!background){
 				waitpid(pid_fork,&status,0);
+				restore_terminal_signals();
 				 if(WEXITSTATUS(status) != 0){
     				printf("Error command not found. %s\n", args[0]);
     			} else {
