@@ -1,10 +1,10 @@
 #!/bin/bash
 echo "Compiling shell..."
-if [[ !(-d build) ]]; then
+if [[ !(-d Build) ]]; then
 	echo Creating Build directory...
-	mkdir build
+	mkdir Build
 fi
-cd build
+cd Build
 gcc ../Shell_project.c ../job_control.c -o Shell
 echo "Done!"
 echo "Running Shell..."

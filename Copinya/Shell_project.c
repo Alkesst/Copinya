@@ -23,7 +23,10 @@ To compile and run the program:
 #define MAX_LINE 256 /* 256 chars per line, per command, should be enough. */
 #define COPINYA "\033[31mcopinya\033[0m"
 
+
 char* status_boi(int status, int info);
+void print_shell();
+int isAShellOrder(char* command_name);
 
 // -----------------------------------------------------------------------
 //                            MAIN          
@@ -38,21 +41,10 @@ int main(void) {
 	int pid_fork, pid_wait; 	/* pid for created and waited process */
 	int status;             	/* status returned by wait */
 	enum status status_res; 	/* status processed by analyze_status() */
-	int info;					/* info processed by analyze_status() */
+	int info, gpid_father;		/* info processed by analyze_status() */
 	char* status_res_str, *aux; // Auxiliar definitions.
-	printf("\n"
-"        .-\"; ! ;\"-.\n"
-"      .'!  : | :  !`.\n"
-"     /\\  ! : ! : !  /\\ \n"
-"    /\\ |  ! :|: !  | /\\ \n"
-"   (  \\ \\ ; :!: ; / /  )\n"
-"  ( `. \\ | !:|:! | / .' )      Welcome to\n"
-"  (`. \\ \\ \\!:|:!/ / / .')      \033[31mcopinya\033[0m shell!\n"
-"   \\ `.`.\\ |!|! |/,'.' /\n"
-"    `._`.\\\\!!!// .'_.'\n"
-"       `.`.\\|//.'.'\n"
-"        |`._`n'_.'|  \n"
-"        \"----^----\"\n\n");
+	new_process_group(getpid()); // PROCESS GROUP TAREA 2
+	print_shell();
 	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/ 
 		ignore_terminal_signals();  		
 		aux = strdup(getenv("PWD"));
@@ -64,31 +56,33 @@ int main(void) {
 		if(args[0]==NULL) continue;   // if empty command
 		pid_fork = fork();
 		if(pid_fork){
+			// FATHER.
+			new_process_group(pid_fork); // PROCESS GROUP 2 TAREA 2
+			set_terminal(pid_fork);
 			if(!background){ // Checks if the command eecuted is a background command.
-				// FATHER.
-				waitpid(pid_fork, &status, 0);
-											
-			} else {
-				/* BACKGROUND COMMAND */
-				printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
-				status_res_str = status_boi(status, info);			
+				waitpid(pid_fork, &status, 0);								
 			}
+			set_terminal(getpid());
 		} else{
 			//Restores the signals here because this is the forked process.
 			//The father is immune to the signals, this code does not
 			//Modify the father behaviour.
 			/* FOREGROUND COMMANDS. SON. */
 			restore_terminal_signals();
-			set_terminal(getppid());
 			exit(execvp(args[0], args));
+			//set_terminal(gpid_father);
 		}
+		// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
 		if(WEXITSTATUS(status) != 0){ 
 			printf("Error command not found. %s\n", args[0]);
+		} else if (background){
+			printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
+				status_res_str = status_boi(status, info);
 		} else {
 			status_res_str = status_boi(status, info);
 			printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
      				pid_fork, args[0], status_res_str, info);
-		}	
+		}
 		/* the steps are:
 			 (1) fork a child process using fork()
 			 (2) the child process will invoke execvp()
@@ -114,4 +108,20 @@ char* status_boi(int status, int info){
 		status_res_str = "CONTINUED";
 	}
     return status_res_str;
+}
+
+void print_shell(){
+		printf("\n"
+"        .-\"; ! ;\"-.\n"
+"      .'!  : | :  !`.\n"
+"     /\\  ! : ! : !  /\\ \n"
+"    /\\ |  ! :|: !  | /\\ \n"
+"   (  \\ \\ ; :!: ; / /  )\n"
+"  ( `. \\ | !:|:! | / .' )      Welcome to\n"
+"  (`. \\ \\ \\!:|:!/ / / .')      \033[31mcopinya\033[0m shell!\n"
+"   \\ `.`.\\ |!|! |/,'.' /\n"
+"    `._`.\\\\!!!// .'_.'\n"
+"       `.`.\\|//.'.'\n"
+"        |`._`n'_.'|  \n"
+"        \"----^----\"\n\n");
 }
