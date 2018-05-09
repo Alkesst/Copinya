@@ -69,6 +69,7 @@ int main(void) {
 				waitpid(pid_fork, &status, 0);
 											
 			} else {
+				/* BACKGROUND COMMAND */
 				printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
 				status_res_str = status_boi(status, info);			
 			}
@@ -76,8 +77,7 @@ int main(void) {
 			//Restores the signals here because this is the forked process.
 			//The father is immune to the signals, this code does not
 			//Modify the father behaviour.
-			/* FOREGROUND COMMANDS. SON.
-			*/
+			/* FOREGROUND COMMANDS. SON. */
 			restore_terminal_signals();
 			set_terminal(getppid());
 			exit(execvp(args[0], args));
@@ -85,9 +85,9 @@ int main(void) {
 		if(WEXITSTATUS(status) != 0){ 
 			printf("Error command not found. %s\n", args[0]);
 		} else {
-			/* BACKGROUND COMMAND
-			*/
 			status_res_str = status_boi(status, info);
+			printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
+     				pid_fork, args[0], status_res_str, info);
 		}	
 		/* the steps are:
 			 (1) fork a child process using fork()
