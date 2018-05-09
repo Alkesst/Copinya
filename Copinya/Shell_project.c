@@ -1,11 +1,13 @@
 /**
-UNIX Shell Project
+UNIX Shell Project. Copinya custom UNIX Shell.
 
 Sistemas Operativos
 Grados I. Informatica, Computadores & Software
 Dept. Arquitectura de Computadores - UMA
 
 Some code adapted from "Fundamentos de Sistemas Operativos", Silberschatz et al.
+
+Author: Alejandro Garau Madrigal.
 
 To compile and run the program:
    $ gcc Shell_project.c job_control.c -o Shell
@@ -21,20 +23,23 @@ To compile and run the program:
 #define MAX_LINE 256 /* 256 chars per line, per command, should be enough. */
 #define COPINYA "\033[31mcopinya\033[0m"
 
+char* status_boi(int status, int info);
+
 // -----------------------------------------------------------------------
 //                            MAIN          
 // -----------------------------------------------------------------------
 
 int main(void) {
+	ignore_terminal_signals();  // Ignores SIGINT SIGQUIT SIGTSTP SIGTTIN SIGTTOU signals.
 	char inputBuffer[MAX_LINE]; /* buffer to hold the command entered */
 	int background;             /* equals 1 if a command is followed by '&' */
 	char *args[MAX_LINE/2];     /* command line (of 256) has max of 128 arguments */
 	// probably useful variables:
-	int pid_fork, pid_wait; /* pid for created and waited process */
-	int status;             /* status returned by wait */
-	enum status status_res; /* status processed by analyze_status() */
-	int info;				/* info processed by analyze_status() */
-	char* status_res_str, *aux;
+	int pid_fork, pid_wait; 	/* pid for created and waited process */
+	int status;             	/* status returned by wait */
+	enum status status_res; 	/* status processed by analyze_status() */
+	int info;					/* info processed by analyze_status() */
+	char* status_res_str, *aux; // Auxiliar definitions.
 	printf("\n"
 "        .-\"; ! ;\"-.\n"
 "      .'!  : | :  !`.\n"
@@ -48,39 +53,42 @@ int main(void) {
 "       `.`.\\|//.'.'\n"
 "        |`._`n'_.'|  \n"
 "        \"----^----\"\n\n");
-	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/   		
-		ignore_terminal_signals();
+	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/ 
+		ignore_terminal_signals();  		
 		aux = strdup(getenv("PWD"));
+		//Shows in the shell the current user, the copinya shell and the current dir. 
 		printf("%s@%s:%s$ ", getenv("USER"), COPINYA, basename(aux));
 		free(aux);
 		fflush(stdout);
 		get_command(inputBuffer, MAX_LINE, args, &background);  /* get next command */
 		if(args[0]==NULL) continue;   // if empty command
-        pid_fork = fork();
-        if(pid_fork){
-        	if(!background){
-				waitpid(pid_fork,&status,0);
-				restore_terminal_signals();
-				 if(WEXITSTATUS(status) != 0){
-    				printf("Error command not found. %s\n", args[0]);
-    			} else {
-    				status_res = analyze_status(status, &info);
-    			if (status_res == 0){
-    				status_res_str = "SUSPENDED";
-    			} else if (status_res == 1){
-    				status_res_str = "SIGNALED";
-    			} else if (status_res == 2){
-    				status_res_str = "EXITED";
-    			}
-    		printf("\nForeground pid: %d, command: %s, %s, info: %d\n",
-    				pid_fork, args[0], status_res_str, info);
-    	}
+		pid_fork = fork();
+		if(pid_fork){
+			if(!background){ // Checks if the command eecuted is a background command.
+				// FATHER.
+				waitpid(pid_fork, &status, 0);
+											
 			} else {
 				printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
+				status_res_str = status_boi(status, info);			
 			}
-        } else {
+		} else{
+			//Restores the signals here because this is the forked process.
+			//The father is immune to the signals, this code does not
+			//Modify the father behaviour.
+			/* FOREGROUND COMMANDS. SON.
+			*/
+			restore_terminal_signals();
+			set_terminal(getppid());
 			exit(execvp(args[0], args));
-        }
+		}
+		if(WEXITSTATUS(status) != 0){ 
+			printf("Error command not found. %s\n", args[0]);
+		} else {
+			/* BACKGROUND COMMAND
+			*/
+			status_res_str = status_boi(status, info);
+		}	
 		/* the steps are:
 			 (1) fork a child process using fork()
 			 (2) the child process will invoke execvp()
@@ -90,4 +98,20 @@ int main(void) {
 		*/
 
 	} // end while
+}
+
+char* status_boi(int status, int info){
+	char* status_res_str;
+	int status_res;
+	status_res = analyze_status(status, &info);
+	if (status_res == 0){
+		status_res_str = "SUSPENDED";
+	} else if (status_res == 1){
+		status_res_str = "SIGNALED";
+	} else if (status_res == 2){
+		status_res_str = "EXITED";
+	} else if (status_res == 3){
+		status_res_str = "CONTINUED";
+	}
+    return status_res_str;
 }
