@@ -21,10 +21,10 @@ Some code adapted from "Fundamentos de Sistemas Operativos", Silberschatz et al.
 #include <sys/wait.h>
 
 // ----------- ENUMERATIONS ---------------------------------------------
-enum status { SUSPENDED, SIGNALED, EXITED};
+enum status { SUSPENDED, SIGNALED, EXITED, CONTINUED};
 enum job_state { FOREGROUND, BACKGROUND, STOPPED };
-static char* status_strings[] = { "Suspended","Signaled","Exited" };
-static char* state_strings[] = { "Foreground","Background","Stopped" };
+static char* status_strings[] = { "Suspended", "Signaled", "Exited", "Continued"};
+static char* state_strings[] = { "Foreground", "Background", "Stopped" };
 
 // ----------- JOB TYPE FOR JOB LIST ------------------------------------
 typedef struct job_

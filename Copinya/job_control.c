@@ -9,11 +9,10 @@ Dept. Arquitectura de Computadores - UMA
 Some code adapted from "Fundamentos de Sistemas Operativos", Silberschatz et al.
 --------------------------------------------------------*/
 
-#include "job_control.h"
-#ifndef __APPLE__
-#include <malloc.h>
-#endif
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include "job_control.h"
 
 // -----------------------------------------------------------------------
 //  get_command() reads in the next command line, separating it into distinct tokens
@@ -37,7 +36,7 @@ void get_command(char inputBuffer[], int size, char *args[],int *background)
 	start = -1;
 	if (length == 0)
 	{
-		printf("\n\nExiting \033[31mcopinya\033[0m...\n\n");
+		printf("\nExiting copinya...\n");
 		exit(0);            /* ^d was entered, end of user command stream */
 	} 
 	if (length < 0){
@@ -181,23 +180,36 @@ void print_list(job * list, void (*print)(job *))
 }
 
 // -----------------------------------------------------------------------
-/* interpretar valor estatus que devuelve wait */
+/* interpretar valor status que devuelve wait */
 enum status analyze_status(int status, int *info)
 {
+	// el proceso se ha suspendido 
 	if (WIFSTOPPED (status))
 	{
 		*info=WSTOPSIG(status);
 		return(SUSPENDED);
 	}
+	// el proceso se ha reanudado
+    else if (WIFCONTINUED(status))
+    { 
+        *info=0; 
+        return(CONTINUED);
+    }
 	else
 	{
-		// el proceso termio
+		// el proceso ha terminado 
 		if (WIFSIGNALED (status))
-		{ *info=WTERMSIG (status); return(SIGNALED);}
+		{ 
+			*info=WTERMSIG (status); 
+			return(SIGNALED);
+		}
 		else
-		{ *info=WEXITSTATUS(status); return(EXITED);}
+		{ 
+			*info=WEXITSTATUS(status); 
+			return(EXITED);
+		}
 	}
-	return EXITED;
+	return -1;
 }
 
 // -----------------------------------------------------------------------
