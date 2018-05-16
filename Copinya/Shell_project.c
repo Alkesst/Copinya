@@ -17,6 +17,7 @@ To compile and run the program:
 **/
 
 #include "job_control.h"   // remember to compile with module job_control.c 
+#include "InternalCommands.c"
 #include <libgen.h>
 #include <string.h>
 
@@ -26,7 +27,6 @@ To compile and run the program:
 
 char* status_boi(int status, int info);
 void print_shell();
-int isAShellOrder(char* command_name);
 
 // -----------------------------------------------------------------------
 //                            MAIN          
@@ -54,34 +54,36 @@ int main(void) {
 		fflush(stdout);
 		get_command(inputBuffer, MAX_LINE, args, &background);  /* get next command */
 		if(args[0]==NULL) continue;   // if empty command
-		pid_fork = fork();
-		if(pid_fork){
-			// FATHER.
-			new_process_group(pid_fork); // PROCESS GROUP 2 TAREA 2
-			set_terminal(pid_fork);
-			if(!background){ // Checks if the command eecuted is a background command.
-				waitpid(pid_fork, &status, 0);								
+		if(!isAShellOrder(args[0], args)){
+			pid_fork = fork();
+			if(pid_fork){
+				// FATHER.
+				new_process_group(pid_fork); // PROCESS GROUP TAREA 2
+				set_terminal(pid_fork);
+				if(!background){ // Checks if the command eecuted is a background command.
+					waitpid(pid_fork, &status, 0);								
+				}
+				set_terminal(getpid());
+			} else{
+				//Restores the signals here because this is the forked process.
+				//The father is immune to the signals, this code does not
+				//Modify the father behaviour.
+				/* FOREGROUND COMMANDS. SON. */
+				restore_terminal_signals();
+				exit(execvp(args[0], args));
+				//set_terminal(gpid_father);
 			}
-			set_terminal(getpid());
-		} else{
-			//Restores the signals here because this is the forked process.
-			//The father is immune to the signals, this code does not
-			//Modify the father behaviour.
-			/* FOREGROUND COMMANDS. SON. */
-			restore_terminal_signals();
-			exit(execvp(args[0], args));
-			//set_terminal(gpid_father);
-		}
-		// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
-		if(WEXITSTATUS(status) != 0){ 
-			printf("Error command not found. %s\n", args[0]);
-		} else if (background){
-			printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
+			// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
+			if(WEXITSTATUS(status) != 0){ 
+				printf("Error command not found. %s\n", args[0]);
+			} else if (background){
+				printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
+					status_res_str = status_boi(status, info);
+			} else {
 				status_res_str = status_boi(status, info);
-		} else {
-			status_res_str = status_boi(status, info);
-			printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
-     				pid_fork, args[0], status_res_str, info);
+				printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
+	     				pid_fork, args[0], status_res_str, info);
+			}
 		}
 		/* the steps are:
 			 (1) fork a child process using fork()
