@@ -20,13 +20,16 @@ To compile and run the program:
 #include "InternalCommands.c"
 #include <libgen.h>
 #include <string.h>
+#include <signal.h>
 
 #define MAX_LINE 256 /* 256 chars per line, per command, should be enough. */
 #define COPINYA "\033[31mcopinya\033[0m"
 
+job* job_list;
 
-char* status_boi(int status, int info);
+
 void print_shell();
+void SIGCHLD_handler();
 
 // -----------------------------------------------------------------------
 //                            MAIN          
@@ -34,6 +37,7 @@ void print_shell();
 
 int main(void) {
 	ignore_terminal_signals();  // Ignores SIGINT SIGQUIT SIGTSTP SIGTTIN SIGTTOU signals.
+	job_list = new_list("Copinya Jobs");
 	char inputBuffer[MAX_LINE]; /* buffer to hold the command entered */
 	int background;             /* equals 1 if a command is followed by '&' */
 	char *args[MAX_LINE/2];     /* command line (of 256) has max of 128 arguments */
@@ -42,15 +46,18 @@ int main(void) {
 	int status;             	/* status returned by wait */
 	enum status status_res; 	/* status processed by analyze_status() */
 	int info, gpid_father;		/* info processed by analyze_status() */
-	char* status_res_str, *aux; // Auxiliar definitions.
+	char* status_res_str; // Auxiliar definitions.
 	new_process_group(getpid()); // PROCESS GROUP TAREA 2
 	print_shell();
-	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/   		
-		aux = strdup(getenv("PWD"));
-		//Shows in the shell the current user, the copinya shell and the current dir. 
-		printf("%s@%s:%s$ ", getenv("USER"), COPINYA, basename(aux));
-		free(aux);
-		fflush(stdout);
+	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/
+		{
+            //Obtiene el directorio actual y el nombre de usuario
+            //Queda bonito
+            char tstr[255]; getcwd(tstr, 255);
+            printf("%s@%s:%s$ ",getlogin() , COPINYA, basename(tstr));
+            fflush(stdout);
+        }  
+		//Shows in the shell the current user, the copinya shell and the current dir.
 		get_command(inputBuffer, MAX_LINE, args, &background);  /* get next command */
 		if(args[0]==NULL) continue;   // if empty command
 		if(!isAShellOrder(args[0], args)){
@@ -61,15 +68,20 @@ int main(void) {
 					set_terminal(pid_fork);
 					pid_wait = waitpid(pid_fork, &status, WUNTRACED);								
 					set_terminal(getpid());
+				} else {
+					block_SIGCHLD();
+					add_job(job_list, new_job(pid_fork, args[0], BACKGROUND));
+					print_job_list(job_list);
+					unblock_SIGCHLD();
 				}
 				// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
 				if(WEXITSTATUS(status) != 0){ 
-					printf("Error command not found. %s\n", args[0]);
+					printf("Error command not found: %s\n", args[0]);
 				} else if (background){
 					printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
-					status_res_str = status_boi(status, info);
+					status_res_str = status_strings[analyze_status(status, &info)];
 				} else {
-					status_res_str = status_boi(status, info);
+					status_res_str = status_strings[analyze_status(status, &info)];
 					printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
 	     				pid_fork, args[0], status_res_str, info);
 				}
@@ -79,7 +91,9 @@ int main(void) {
 				//Modify the father behaviour.
 				/* FOREGROUND COMMANDS. SON. */
 				new_process_group(getpid());
-				set_terminal(getpid());
+				if(!background){
+					set_terminal(getpid());
+				}
 				restore_terminal_signals();
 				exit(execvp(args[0], args));
 			}
@@ -93,22 +107,6 @@ int main(void) {
 		*/
 
 	} // end while
-}
-
-char* status_boi(int status, int info){
-	char* status_res_str;
-	int status_res;
-	status_res = analyze_status(status, &info);
-	if (status_res == 0){
-		status_res_str = "SUSPENDED";
-	} else if (status_res == 1){
-		status_res_str = "SIGNALED";
-	} else if (status_res == 2){
-		status_res_str = "EXITED";
-	} else if (status_res == 3){
-		status_res_str = "CONTINUED";
-	}
-    return status_res_str;
 }
 
 void print_shell(){
@@ -125,4 +123,8 @@ void print_shell(){
 "       `.`.\\|//.'.'\n"
 "        |`._`n'_.'|  \n"
 "        \"----^----\"\n\n");
+}
+
+void SIGCHLD_handler(){
+		
 }
