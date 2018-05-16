@@ -58,12 +58,12 @@ int main(void) {
 			pid_fork = fork();
 			if(pid_fork){
 				// FATHER.
-				new_process_group(pid_fork); // PROCESS GROUP TAREA 2
-				set_terminal(pid_fork);
+				new_process_group(getpid()); // PROCESS GROUP TAREA 2
 				if(!background){ // Checks if the command eecuted is a background command.
+					set_terminal(pid_fork);
 					waitpid(pid_fork, &status, 0);								
+					set_terminal(getpid());
 				}
-				set_terminal(getpid());
 			} else{
 				//Restores the signals here because this is the forked process.
 				//The father is immune to the signals, this code does not
