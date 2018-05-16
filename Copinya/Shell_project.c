@@ -45,8 +45,7 @@ int main(void) {
 	char* status_res_str, *aux; // Auxiliar definitions.
 	new_process_group(getpid()); // PROCESS GROUP TAREA 2
 	print_shell();
-	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/ 
-		ignore_terminal_signals();  		
+	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/   		
 		aux = strdup(getenv("PWD"));
 		//Shows in the shell the current user, the copinya shell and the current dir. 
 		printf("%s@%s:%s$ ", getenv("USER"), COPINYA, basename(aux));
@@ -58,31 +57,31 @@ int main(void) {
 			pid_fork = fork();
 			if(pid_fork){
 				// FATHER.
-				new_process_group(getpid()); // PROCESS GROUP TAREA 2
 				if(!background){ // Checks if the command eecuted is a background command.
 					set_terminal(pid_fork);
-					waitpid(pid_fork, &status, 0);								
+					pid_wait = waitpid(pid_fork, &status, WUNTRACED);								
 					set_terminal(getpid());
+				}
+				// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
+				if(WEXITSTATUS(status) != 0){ 
+					printf("Error command not found. %s\n", args[0]);
+				} else if (background){
+					printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
+					status_res_str = status_boi(status, info);
+				} else {
+					status_res_str = status_boi(status, info);
+					printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
+	     				pid_fork, args[0], status_res_str, info);
 				}
 			} else{
 				//Restores the signals here because this is the forked process.
 				//The father is immune to the signals, this code does not
 				//Modify the father behaviour.
 				/* FOREGROUND COMMANDS. SON. */
+				set_terminal(getpid());
+				new_process_group(getpid());
 				restore_terminal_signals();
 				exit(execvp(args[0], args));
-				//set_terminal(gpid_father);
-			}
-			// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
-			if(WEXITSTATUS(status) != 0){ 
-				printf("Error command not found. %s\n", args[0]);
-			} else if (background){
-				printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
-					status_res_str = status_boi(status, info);
-			} else {
-				status_res_str = status_boi(status, info);
-				printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
-	     				pid_fork, args[0], status_res_str, info);
 			}
 		}
 		/* the steps are:
