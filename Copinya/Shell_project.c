@@ -78,8 +78,8 @@ int main(void) {
 				//The father is immune to the signals, this code does not
 				//Modify the father behaviour.
 				/* FOREGROUND COMMANDS. SON. */
-				set_terminal(getpid());
 				new_process_group(getpid());
+				set_terminal(getpid());
 				restore_terminal_signals();
 				exit(execvp(args[0], args));
 			}
