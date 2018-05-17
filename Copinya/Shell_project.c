@@ -49,6 +49,7 @@ int main(void) {
 	char* status_res_str; // Auxiliar definitions.
 	new_process_group(getpid()); // PROCESS GROUP TAREA 2
 	print_shell();
+	signal(SIGCHLD, SIGCHLD_handler);
 	while (1){   /* Program terminates normally inside get_command() after ^D is typed*/
 		{
             //Obtiene el directorio actual y el nombre de usuario
@@ -126,5 +127,28 @@ void print_shell(){
 }
 
 void SIGCHLD_handler(){
-		
+	int exitStatus, info, hasToBeDeleted, n = 0;
+	job* job = job_list->next;
+	enum status status_res;
+    pid_t pid;
+	while(job != NULL){
+		hasToBeDeleted = 0;
+		pid = waitpid(job->pgid, &exitStatus, WNOHANG | WUNTRACED);
+		if (pid == job->pgid){
+			status_res = analyze_status(exitStatus, &info);
+			if(status_res == EXITED) {
+				hasToBeDeleted = 1;
+				printf(" [%d]+ Done", n);
+			}
+		}
+		if(hasToBeDeleted) {
+            struct job_* jobToBeDeleted = job;
+            job = job->next;
+            delete_job(job_list, jobToBeDeleted);
+        } else {
+            job = job->next;
+        }
+        n++;
+	}
+
 }
