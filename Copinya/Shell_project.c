@@ -17,7 +17,6 @@ To compile and run the program:
 **/
 
 #include "job_control.h"   // remember to compile with module job_control.c 
-#include "InternalCommands.c"
 #include <libgen.h>
 #include <string.h>
 #include <signal.h>
@@ -28,8 +27,9 @@ To compile and run the program:
 job* job_list;
 
 
-void print_shell();
-void SIGCHLD_handler();
+void print_shell(void);
+void SIGCHLD_handler(int);
+int isAShellOrder(char* command_name, char* argsv[]);
 
 // -----------------------------------------------------------------------
 //                            MAIN          
@@ -74,22 +74,25 @@ int main(void) {
 					set_terminal(pid_fork);
 					pid_wait = waitpid(pid_fork, &status, WUNTRACED);								
 					set_terminal(getpid());
-				} else {
+				}
+				// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
+				status_res = analyze_status(status, &info);
+				status_res_str = status_strings[status_res];
+				if(WEXITSTATUS(status) == 127){ 
+					printf("Error command not found: %s\n", args[0]);
+				} else if (background){
 					// block_SIGCHLD();
 					add_job(job_list, new_job(pid_fork, args[0], BACKGROUND));
 					print_job_list(job_list);
 					// unblock_SIGCHLD();
-				}
-				// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
-				if(WEXITSTATUS(status) != 0){ 
-					printf("Error command not found: %s\n", args[0]);
-				} else if (background){
 					printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
-					status_res_str = status_strings[analyze_status(status, &info)];
+				} else if (status_res == SUSPENDED){
+					printf("\nForeground pid: %d, command: %s, has been suspended...\n", pid_fork, args[0]);
+					add_job(job_list, new_job(pid_fork, args[0], STOPPED));
+					set_terminal(getpid());
 				} else {
-					status_res_str = status_strings[analyze_status(status, &info)];
 					printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
-	     				pid_fork, args[0], status_res_str, info);
+	     				pid_fork, args[0], status_res_str, info);						
 				}
 				unblock_SIGCHLD();
 			} else{
@@ -103,7 +106,8 @@ int main(void) {
 					set_terminal(getpid());
 				}
 				restore_terminal_signals();
-				exit(execvp(args[0], args));
+				execvp(args[0], args);
+				exit(127);
 			}
 		}
 		/* the steps are:
@@ -133,7 +137,7 @@ void print_shell(){
 "        \"----^----\"\n\n");
 }
 
-void SIGCHLD_handler(){
+void SIGCHLD_handler(int s){
 	int exitStatus, info, hasToBeDeleted, n = 0;
 	job* job = job_list->next;
 	enum status status_res;
@@ -146,7 +150,11 @@ void SIGCHLD_handler(){
 			if(status_res == EXITED) {
 				hasToBeDeleted = 1;
 				printf(" [%d]+ Done\n", n);
-			}
+			} else if(job->state != STOPPED && status_res == SUSPENDED) {
+                //Si se ha suspendido, hay que anotarlo y notificarlo
+                job->state = STOPPED;
+                printf(" - %d %s has been suspended\n", job->pgid, job->command);
+            }
 		}
 		if(hasToBeDeleted) {
             struct job_* jobToBeDeleted = job;

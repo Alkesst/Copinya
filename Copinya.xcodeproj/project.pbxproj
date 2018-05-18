@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		700AE85420AF20DA00B22A9B /* InternalCommands.c in Sources */ = {isa = PBXBuildFile; fileRef = 700AE85320AF20DA00B22A9B /* InternalCommands.c */; };
 		70C6E8FC2090AABE00DAB355 /* job_control.c in Sources */ = {isa = PBXBuildFile; fileRef = 70C6E8FA2090AABE00DAB355 /* job_control.c */; };
 		70C6E8FD2090AABE00DAB355 /* Shell_project.c in Sources */ = {isa = PBXBuildFile; fileRef = 70C6E8FB2090AABE00DAB355 /* Shell_project.c */; };
 /* End PBXBuildFile section */
@@ -24,6 +25,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		700AE85320AF20DA00B22A9B /* InternalCommands.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = InternalCommands.c; sourceTree = "<group>"; };
 		70C6E8EF2090AA5A00DAB355 /* Copinya */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Copinya; sourceTree = BUILT_PRODUCTS_DIR; };
 		70C6E8F92090AABE00DAB355 /* job_control.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = job_control.h; sourceTree = "<group>"; };
 		70C6E8FA2090AABE00DAB355 /* job_control.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = job_control.c; sourceTree = "<group>"; };
@@ -60,6 +62,7 @@
 		70C6E8F12090AA5A00DAB355 /* Copinya */ = {
 			isa = PBXGroup;
 			children = (
+				700AE85320AF20DA00B22A9B /* InternalCommands.c */,
 				70C6E8FA2090AABE00DAB355 /* job_control.c */,
 				70C6E8F92090AABE00DAB355 /* job_control.h */,
 				70C6E8FB2090AABE00DAB355 /* Shell_project.c */,
@@ -125,6 +128,7 @@
 			files = (
 				70C6E8FD2090AABE00DAB355 /* Shell_project.c in Sources */,
 				70C6E8FC2090AABE00DAB355 /* job_control.c in Sources */,
+				700AE85420AF20DA00B22A9B /* InternalCommands.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

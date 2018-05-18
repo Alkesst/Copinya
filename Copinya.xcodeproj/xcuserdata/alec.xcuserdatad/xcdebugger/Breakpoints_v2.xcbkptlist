@@ -9,13 +9,29 @@
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "Copinya/Shell_project.c"
-            timestampString = "548173791.897848"
+            filePath = "Copinya/InternalCommands.c"
+            timestampString = "548349118.0442491"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "52"
-            endingLineNumber = "52"
-            landmarkName = "main"
+            startingLineNumber = "97"
+            endingLineNumber = "97"
+            landmarkName = "fg"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Copinya/Shell_project.c"
+            timestampString = "548349118.044737"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "148"
+            endingLineNumber = "148"
+            landmarkName = "SIGCHLD_handler"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
