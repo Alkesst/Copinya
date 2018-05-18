@@ -59,21 +59,26 @@ int main(void) {
             fflush(stdout);
         }  
 		//Shows in the shell the current user, the copinya shell and the current dir.
+		block_SIGCHLD();
 		get_command(inputBuffer, MAX_LINE, args, &background);  /* get next command */
-		if(args[0]==NULL) continue;   // if empty command
+		if(args[0]==NULL){ 
+			unblock_SIGCHLD();
+			continue;   // if empty csommand
+		}
 		if(!isAShellOrder(args[0], args)){
 			pid_fork = fork();
 			if(pid_fork){
 				// FATHER.
 				if(!background){ // Checks if the command eecuted is a background command.
+					unblock_SIGCHLD();
 					set_terminal(pid_fork);
 					pid_wait = waitpid(pid_fork, &status, WUNTRACED);								
 					set_terminal(getpid());
 				} else {
-					block_SIGCHLD();
+					// block_SIGCHLD();
 					add_job(job_list, new_job(pid_fork, args[0], BACKGROUND));
 					print_job_list(job_list);
-					unblock_SIGCHLD();
+					// unblock_SIGCHLD();
 				}
 				// STATUS MESSAGES THAT THE SHELL SENDS TO THE USER.
 				if(WEXITSTATUS(status) != 0){ 
@@ -86,7 +91,9 @@ int main(void) {
 					printf("\nForeground pid: %d, command: %s, %s, info: %d\n",		
 	     				pid_fork, args[0], status_res_str, info);
 				}
+				unblock_SIGCHLD();
 			} else{
+				unblock_SIGCHLD();
 				//Restores the signals here because this is the forked process.
 				//The father is immune to the signals, this code does not
 				//Modify the father behaviour.
@@ -138,7 +145,7 @@ void SIGCHLD_handler(){
 			status_res = analyze_status(exitStatus, &info);
 			if(status_res == EXITED) {
 				hasToBeDeleted = 1;
-				printf(" [%d]+ Done", n);
+				printf(" [%d]+ Done\n", n);
 			}
 		}
 		if(hasToBeDeleted) {
