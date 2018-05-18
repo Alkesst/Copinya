@@ -32,8 +32,12 @@ int isAShellOrder(char* command_name, char* argsv[]){
 
 void cd(int args, char* argsv[]){
 	// cd a un directorio.
-	if(chdir(argsv[1]) == -1){
-		perror(argsv[1]);
+	if(args == 1){
+		chdir("/");
+	} else {
+		if(chdir(argsv[1]) == -1){
+			perror(argsv[1]);
+		}
 	}
 }
 
