@@ -16,10 +16,23 @@ Otra prueba a realizar es usar el comando `cat` que hace un echo del input strea
 
 Y por último, otro tipo de pruebas a realizar es ejecutar comandos en `bash` y `copinya` simultáneamente para comprobar el correcto funcionamiento de tu shell customizada. 
 
+
+##### Mac Users
+
+Para usuarios que utilicen mac, una solución para poder utilizar la shell es usar docker con el siguiente comando...
+
+`docker container run --rm --init -it -v "$PWD:/opt/shell" ubuntu  bash`
+
+luego dentro del contenedor, ejecutar `apt update` y luego `apt install gcc` y podrás compilar `copinya` sin problemas y con el comportamiento esperado.
+
+
+
 Spoiler zone:
 
 `Copinya` means shell in catalan.
 
 The commit [e5469f7](https://github.com/Alkesst/Copinya/commit/4ca8d1c8745e82b5b22a6199df177100365c3434) was made with the Copinya Shell.
+
+En mac el comportamiento no es el adecuado con todo el tema de los procesos en bg y en fg, por eso se usa un contenedor de docker y ubuntu.
 
 
