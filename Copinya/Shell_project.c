@@ -1,5 +1,5 @@
 /**
-UNIX Shell Project. Copinya custom UNIX Shell.
+UNIX Shell Project. Copinya custom UNIX Shell © 2018.
 
 Sistemas Operativos
 Grados I. Informatica, Computadores & Software
@@ -8,15 +8,9 @@ Dept. Arquitectura de Computadores - UMA
 Some code adapted from "Fundamentos de Sistemas Operativos", Silberschatz et al.
 
 Author: Alejandro Garau Madrigal.
-
-To compile and run the program:
-   $ gcc Shell_project.c job_control.c -o Shell
-   $ ./Shell          
-	(then type ^D to exit program)
-
 **/
 
-#include "job_control.h"   // remember to compile with module job_control.c 
+#include "job_control.h"
 #include <libgen.h>
 #include <string.h>
 #include <signal.h>

@@ -1,3 +1,14 @@
+/**
+UNIX Shell Project. Copinya custom UNIX Shell © 2018.
+
+Sistemas Operativos
+Grados I. Informatica, Computadores & Software
+Dept. Arquitectura de Computadores - UMA
+
+Author: Alejandro Garau Madrigal.
+**/
+
+
 #include <string.h>
 #include <unistd.h>
 #include <stdio.h>

@@ -8,8 +8,18 @@
 4. Suspender procesos con `^Z`, añadirlos a la lista de tareas con el estado `STOPPED`, soporte para comandos internos `fg args` para ejecutar el proceso argumento `args` de la lista de tareas en foreground; y `bg args` para ejecutar el proceso `args` de la lista de tareas en background. 
 
 
+### Testing
+
+Para probar el correcto funcionamiento de la shell, teniendo la `copinya` ejecutándose, compila el fichero `groupsignal.c` con `gcc -o groupsignal groupsignal.c` y luego, dentro de `copinya shell`, usa `./groupsignal`. Prueba a suspender el proceso con `^Z`, si sigue imprimiendo el carácter A, entonces funciona bien. 
+
+Otra prueba a realizar es usar el comando `cat` que hace un echo del input stream. Si suspendes el proceso, debería dejar de hacer el echo y atender al proceso padre.
+
+Y por último, otro tipo de pruebas a realizar es ejecutar comandos en `bash` y `copinya` simultáneamente para comprobar el correcto funcionamiento de tu shell customizada. 
+
 Spoiler zone:
 
 `Copinya` means shell in catalan.
 
 The commit [e5469f7](https://github.com/Alkesst/Copinya/commit/4ca8d1c8745e82b5b22a6199df177100365c3434) was made with the Copinya Shell.
+
+
