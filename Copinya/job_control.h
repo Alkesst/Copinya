@@ -20,6 +20,13 @@ Some code adapted from "Fundamentos de Sistemas Operativos", Silberschatz et al.
 #include <sys/types.h>
 #include <sys/wait.h>
 
+// ----------- Custom ---------------------------------------------------
+struct output_commands{
+	int background;
+	char* output_name;
+	char* input_name;
+};
+
 // ----------- ENUMERATIONS ---------------------------------------------
 enum status { SUSPENDED, SIGNALED, EXITED, CONTINUED};
 enum job_state { FOREGROUND, BACKGROUND, STOPPED };
@@ -39,7 +46,7 @@ typedef struct job_
 //      PUBLIC FUNCTIONS
 // -----------------------------------------------------------------------
 
-void get_command(char inputBuffer[], int size, char *args[],int *background);
+void get_command(char inputBuffer[], int size, char *args[], struct output_commands* output);
 
 job * new_job(pid_t pid, const char * command, enum job_state state);
 

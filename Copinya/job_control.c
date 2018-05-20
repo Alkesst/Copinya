@@ -20,7 +20,7 @@ Some code adapted from "Fundamentos de Sistemas Operativos", Silberschatz et al.
 //  null-terminated string.
 // -----------------------------------------------------------------------
 
-void get_command(char inputBuffer[], int size, char *args[],int *background)
+void get_command(char inputBuffer[], int size, char *args[], struct output_commands* output)
 {
 	int length, /* # of characters in the command line */
 		i,      /* loop index for accessing inputBuffer array */
@@ -28,7 +28,9 @@ void get_command(char inputBuffer[], int size, char *args[],int *background)
 		ct;     /* index of where to place the next parameter into args[] */
 
 	ct = 0;
-	*background=0;
+	output->background=0;
+	output->input_name = NULL;
+	output->output_name = NULL;
 
 	/* read what the user enters on the command line */
 	length = read(STDIN_FILENO, inputBuffer, size);  
@@ -71,10 +73,30 @@ void get_command(char inputBuffer[], int size, char *args[],int *background)
 			break;
 
 		default :             /* some other character */
-
+			if(inputBuffer[i] == '<' || inputBuffer[i] == '>'){
+				char wooo = inputBuffer[i];
+				if(inputBuffer[i-1] != ' '){
+					if(start != -1){
+						args[ct] = &inputBuffer[start];    /* set up pointer */
+						ct++;
+					}
+					inputBuffer[i] = '\0'; /* add a null char; make a C string */
+				}
+				i++;
+				while (inputBuffer[i] == ' '){
+					i++;
+				}
+				if(wooo == '>'){
+					output->output_name = &inputBuffer[i];
+				} else {
+					output->input_name = &inputBuffer[i];
+				}
+				i = length;
+				inputBuffer[i-1] = '\0';
+			}
 			if (inputBuffer[i] == '&') // background indicator
 			{
-				*background  = 1;
+				output->background  = 1;
 				if (start != -1)
 				{
 					args[ct] = &inputBuffer[start];     
