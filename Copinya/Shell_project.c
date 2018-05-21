@@ -27,6 +27,7 @@ job* job_list;
 void print_shell(void);
 void SIGCHLD_handler(int);
 int isAShellOrder(char* command_name, char* argsv[]);
+pid_t execute_command(char* args[], pid_t process_gr, int input, int output, int isBackground);
 
 
 // -----------------------------------------------------------------------
@@ -37,14 +38,14 @@ int main(void) {
     ignore_terminal_signals();  // Ignores SIGINT SIGQUIT SIGTSTP SIGTTIN SIGTTOU signals.
     new_list("Copinya Jobs", job_list);
     char inputBuffer[MAX_LINE]; /* buffer to hold the command entered */
-    char *args[MAX_LINE/2];     /* command line (of 256) has max of 128 arguments */
     // probably useful variables:
     int pid_fork, pid_wait;     /* pid for created and waited process */
     int status;                 /* status returned by wait */
     enum status status_res;     /* status processed by analyze_status() */
     int info;       /* info processed by analyze_status() */
     char* status_res_str; // Auxiliar definitions.
-    struct output_commands output;
+    struct output_commands output[25];
+    size_t output_commands_length;
     new_process_group(getpid()); // PROCESS GROUP TAREA 2
     print_shell();
     signal(SIGCHLD, SIGCHLD_handler);
@@ -58,39 +59,35 @@ int main(void) {
         }  
         //Shows in the shell the current user, the copinya shell and the current dir.
         block_SIGCHLD();
-        get_command(inputBuffer, MAX_LINE, args, &output);  /* get next command */
-        if(args[0]==NULL){ 
+        get_command(inputBuffer, MAX_LINE-1, output, &output_commands_length);  /* get next command */
+        if(output_commands_length == 0){ 
             unblock_SIGCHLD();
             continue;   // if empty csommand
         }
-        if(!isAShellOrder(args[0], args)){
-            if(output.input_name != NULL){
-                if(access(output.input_name, F_OK | R_OK)) {
-                    printf("%s do not exist %s\n", output.input_name, strerror(errno));
+        if(!isAShellOrder(output[0].args[0], output[0].args)){
+            int input = 0, output_ = 0;
+            if(output[0].input_name != NULL){
+                int temp = open(output[0].input_name, O_RDONLY);
+                if(temp == -1) {
+                    printf("Could not read from file: %s -: %s\n", output[0].input_name, strerror(errno));
                     unblock_SIGCHLD();
                     continue;
                 }
+                input = temp;
             }
-            if(output.output_name != NULL){
-                struct stat status;
-                if(stat(output.output_name, &status) == -1){
-                    int what = errno;
-                    if(what == ENOENT){
-                        open(output.output_name, O_CREAT | O_TRUNC | O_WRONLY, 0633);
-                    } else {
-                        printf("Not able to write in %s: %s\n", output.output_name, strerror(what));
-                    }
-                }
-                if(access(output.output_name, W_OK)) {
-                    printf("Not able to write in %s: %s\n", output.output_name, strerror(errno));
-                    unblock_SIGCHLD();  
+             if(output[0].output_name != NULL){
+                int temp = open(output[0].output_name, O_WRONLY | O_CREAT | O_TRUNC, 0644); // 0644 chmod permissions !!!!!! lol IMPORTANTE BRONS
+                if(temp == -1) {
+                    printf("Could not write in file: %s -: %s\n", output[0].output_name, strerror(errno));
+                    unblock_SIGCHLD();
                     continue;
                 }
+                output_ = temp;
             }
-            pid_fork = fork();
+            pid_fork = execute_command(output[0].args, 0, input, output_, output[0].background);
             if(pid_fork){
                 // FATHER.
-                if(!output.background){ // Checks if the command eecuted is a background command.
+                if(!output[0].background){ // Checks if the command eecuted is a background command.
                     unblock_SIGCHLD();
                     set_terminal(pid_fork);
                     pid_wait = waitpid(pid_fork, &status, WUNTRACED);                               
@@ -100,55 +97,26 @@ int main(void) {
                 status_res = analyze_status(status, &info);
                 status_res_str = status_strings[status_res];
                 if(WEXITSTATUS(status) == 127){ 
-                    printf("Error command not found: %s\n", args[0]);
-                } else if (output.background){
+                    printf("Error command not found: %s\n", output[0].args[0]);
+                } else if (output[0].background){
                     // block_SIGCHLD();
-                    if(output.respawnable){
-                        add_job(job_list, new_job(pid_fork, (const char**) args, RESPAWNABLE));
+                    if(output[0].respawnable){
+                        add_job(job_list, new_job(pid_fork, (const char**) output[0].args, RESPAWNABLE));
                     } else {
-                        add_job(job_list, new_job(pid_fork, (const char**) args, BACKGROUND));
+                        add_job(job_list, new_job(pid_fork, (const char**) output[0].args, BACKGROUND));
                     }
                     print_job_list(job_list);
                     // unblock_SIGCHLD();
-                    printf("Background running job... pid: %d, command: %s\n", pid_fork, args[0]);
+                    printf("Background running job... pid: %d, command: %s\n", pid_fork, output[0].args[0]);
                 } else if (status_res == SUSPENDED){
-                    printf("\nForeground pid: %d, command: %s, has been suspended...\n", pid_fork, args[0]);
-                    add_job(job_list, new_job(pid_fork, (const char**) args, STOPPED));
+                    printf("\nForeground pid: %d, command: %s, has been suspended...\n", pid_fork, output[0].args[0]);
+                    add_job(job_list, new_job(pid_fork, (const char**) output[0].args, STOPPED));
                     set_terminal(getpid());
                 } else {
                     printf("\nForeground pid: %d, command: %s, %s, info: %d\n",     
-                        pid_fork, args[0], status_res_str, info);                       
+                        pid_fork, output[0].args[0], status_res_str, info);                       
                 }
                 unblock_SIGCHLD();
-            } else{
-                unblock_SIGCHLD();
-                if(output.output_name != NULL){
-                    FILE *outfile;
-                    if((outfile = fopen(output.output_name, "w")) == NULL){
-                        printf("\033[31mCould not open the file\033[0m %s\n", output.output_name);
-                        exit(126);
-                    }
-                    dup2(fileno(outfile), fileno(stdout));
-                }
-                if(output.input_name != NULL){
-                    FILE *outfile;
-                    if((outfile = fopen(output.input_name, "r")) == NULL){
-                        printf("\033[31mCould not open the file\033[0m %s\n", output.input_name);
-                        exit(126);
-                    }
-                    dup2(fileno(outfile), fileno(stdin));
-                }
-                //Restores the signals here because this is the forked process.
-                //The father is immune to the signals, this code does not
-                //Modify the father behaviour.
-                /* FOREGROUND COMMANDS. SON. */
-                new_process_group(getpid());
-                if(!output.background){
-                    set_terminal(getpid());
-                }
-                restore_terminal_signals();
-                execvp(args[0], args);
-                exit(127);
             }
         } else {
             unblock_SIGCHLD();
@@ -191,9 +159,9 @@ void SIGCHLD_handler(int s){
         if (pid == job->pgid){
             status_res = analyze_status(exitStatus, &info);
             if(status_res == EXITED || status_res == SIGNALED) {
-                printf("exited\n");
                 if(job->state == RESPAWNABLE){
                     if(WEXITSTATUS(exitStatus) != 127){
+                        printf("Respawned process [%d]\n", n);
                         pid_t pid = fork();
                         if(pid){
                             job->pgid = pid;
@@ -204,6 +172,9 @@ void SIGCHLD_handler(int s){
                             execvp(job->argsv[0], job->argsv);
                             exit(127);
                         }
+                    } else {
+                        hasToBeDeleted = 1;
+                        printf("Respawnable closed unexpectedly...\n");
                     }
                 } else {
                     hasToBeDeleted = 1;
@@ -229,4 +200,34 @@ void SIGCHLD_handler(int s){
         n++;
     }
 
+}
+
+pid_t execute_command(char* args[], pid_t process_gr, int input, int output, int isBackground) {
+    pid_t pid_fork = fork();
+    if(!pid_fork){
+        unblock_SIGCHLD();
+        if(output != 0){
+            dup2(output, fileno(stdout));
+        }
+        if(input != 0){
+            dup2(input, fileno(stdin));
+        }
+        //Restores the signals here because this is the forked process.
+        //The father is immune to the signals, this code does not
+        //Modify the father behaviour.
+        /* FOREGROUND COMMANDS. SON. */
+        if (!process_gr){
+            process_gr = getpid();
+            new_process_group(process_gr);
+            if(!isBackground){
+                set_terminal(process_gr);
+            }
+        } else {
+            setpgid(getpid(), process_gr);
+        }
+        restore_terminal_signals();
+        execvp(args[0], args);
+        exit(127);
+    }
+    return pid_fork;
 }

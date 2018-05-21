@@ -26,6 +26,7 @@ struct output_commands{
 	int respawnable;
 	char* output_name;
 	char* input_name;
+	char* args[256];
 };
 
 // ----------- ENUMERATIONS ---------------------------------------------
@@ -49,7 +50,7 @@ typedef struct job_
 //      PUBLIC FUNCTIONS
 // -----------------------------------------------------------------------
 
-void get_command(char inputBuffer[], int size, char *args[], struct output_commands* output);
+void get_command(char inputBuffer[], int size, struct output_commands* output, size_t* length);
 
 job * new_job(pid_t pid, const char ** argsv, enum job_state state);
 
