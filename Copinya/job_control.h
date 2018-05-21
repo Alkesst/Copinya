@@ -23,15 +23,16 @@ Some code adapted from "Fundamentos de Sistemas Operativos", Silberschatz et al.
 // ----------- Custom ---------------------------------------------------
 struct output_commands{
 	int background;
+	int respawnable;
 	char* output_name;
 	char* input_name;
 };
 
 // ----------- ENUMERATIONS ---------------------------------------------
 enum status { SUSPENDED, SIGNALED, EXITED, CONTINUED};
-enum job_state { FOREGROUND, BACKGROUND, STOPPED };
+enum job_state { FOREGROUND, BACKGROUND, STOPPED, RESPAWNABLE };
 static char* status_strings[] = { "Suspended", "Signaled", "Exited", "Continued"};
-static char* state_strings[] = { "Foreground", "Background", "Stopped" };
+static char* state_strings[] = { "Foreground", "Background", "Stopped", "Respawnable" };
 
 // ----------- JOB TYPE FOR JOB LIST ------------------------------------
 typedef struct job_
@@ -40,6 +41,8 @@ typedef struct job_
 	char * command; /* program name */
 	enum job_state state;
 	struct job_ *next; /* next job in the list */
+	char** argsv;
+	int args;
 } job;
 
 // -----------------------------------------------------------------------
@@ -48,7 +51,7 @@ typedef struct job_
 
 void get_command(char inputBuffer[], int size, char *args[], struct output_commands* output);
 
-job * new_job(pid_t pid, const char * command, enum job_state state);
+job * new_job(pid_t pid, const char ** argsv, enum job_state state);
 
 void add_job (job * list, job * item);
 
@@ -79,7 +82,7 @@ void block_signal(int signal, int block);
 #define list_size(list) 	 list->pgid   // number of jobs in the list
 #define empty_list(list) 	 !(list->pgid)  // returns 1 (true) if the list is empty
 
-#define new_list(name) 			 new_job(0,name,FOREGROUND)  // name must be const char *
+#define new_list(name, list) 			do { const char* a[] = {name, NULL}; list = new_job(0, a, FOREGROUND); } while(0)  // name must be const char *
 
 #define print_job_list(list) 	 print_list(list, print_item)
 

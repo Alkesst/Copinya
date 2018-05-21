@@ -93,9 +93,7 @@ void get_command(char inputBuffer[], int size, char *args[], struct output_comma
 				}
 				i = length;
 				inputBuffer[i-1] = '\0';
-			}
-			if (inputBuffer[i] == '&') // background indicator
-			{
+			} else if (inputBuffer[i] == '&'){ // background indicator
 				output->background  = 1;
 				if (start != -1)
 				{
@@ -106,6 +104,16 @@ void get_command(char inputBuffer[], int size, char *args[], struct output_comma
 				args[ct] = NULL; /* no more arguments to this command */
 				i=length; // make sure the for loop ends now
 
+			} else if (inputBuffer[i] == '+'){ // background indicator
+				output->respawnable  = 1;
+				output->background = 1;
+				if (start != -1) {
+					args[ct] = &inputBuffer[start];     
+					ct++;
+				}
+				inputBuffer[i] = '\0';
+				args[ct] = NULL; /* no more arguments to this command */
+				i=length; // make sure the for loop ends now
 			}
 			else if (start == -1) start = i;  // start of new argument
 		}  // end switch
@@ -117,14 +125,23 @@ void get_command(char inputBuffer[], int size, char *args[], struct output_comma
 // -----------------------------------------------------------------------
 /* devuelve puntero a un nodo con sus valores inicializados,
 devuelve NULL si no pudo realizarse la reserva de memoria*/
-job * new_job(pid_t pid, const char * command, enum job_state state)
+job * new_job(pid_t pid, const char ** argsv, enum job_state state)
 {
 	job * aux;
 	aux=(job *) malloc(sizeof(job));
 	aux->pgid=pid;
 	aux->state=state;
-	aux->command=strdup(command);
+	aux->command=strdup(argsv[0]);
 	aux->next=NULL;
+	aux->args = 1;
+	while(argsv[aux->args] != NULL){
+		aux->args++;
+	}
+	aux->argsv = malloc(sizeof(char*) * (aux->args + 1));
+	for(size_t I = 0; I < aux->args; I++){
+		aux->argsv[I] = strdup(argsv[I]);
+	}
+	aux->argsv[aux->args] = NULL;
 	return aux;
 }
 
@@ -150,6 +167,10 @@ int delete_job(job * list, job * item)
 	{
 		aux->next=item->next;
 		free(item->command);
+		for(size_t t = 0; t < item->args; t++){
+			free(item->argsv[t]);
+		}
+        free(item->argsv);
 		free(item);
 		list->pgid--;
 		return 1;
