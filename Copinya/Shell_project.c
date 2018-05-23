@@ -127,12 +127,11 @@ int main(void) {
                 {
                     siginfo_t statusinfo;
                     unblock_SIGCHLD();
-                    set_terminal(pid_fork);
-                    //while ((pid_wait = wait(&status)) > 0);                      
-                     pid_wait = waitpid(pid_fork, &status, WUNTRACED);               
-                     close(pope[0]);
-                     pid_wait = waitpid(jeje, &status, WUNTRACED);
-                     close(pope[1]);
+                    //set_terminal(pid_fork);
+                    // while ((pid_wait = wait(&status)) > 0);                      
+                    pid_wait = waitpid(pid_fork, &status, WUNTRACED);               
+                    close(pope[1]);
+                    pid_wait = waitpid(jeje, &status, WUNTRACED);
                     //pid_wait = waitid(P_PGID, pid_fork, &statusinfo, WUNTRACED);
                     //pid_wait = waitid(P_PGID, pid_fork, &statusinfo, WUNTRACED);
                     //int waitid(idtype_t idtype, id_t id, siginfo_t *infop, int options);                      
@@ -250,7 +249,6 @@ pid_t execute_command(char* args[], pid_t process_gr, int input, int output, int
         //The father is immune to the signals, this code does not
         //Modify the father behaviour.
         /* FOREGROUND COMMANDS. SON. */
-        restore_terminal_signals();
         if (!process_gr){
             process_gr = getpid();
             new_process_group(process_gr);
@@ -260,6 +258,7 @@ pid_t execute_command(char* args[], pid_t process_gr, int input, int output, int
         } else {
             setpgid(getpid(), process_gr);
         }
+        restore_terminal_signals();
         execvp(args[0], args);
         exit(127);
     }
