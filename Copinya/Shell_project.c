@@ -135,7 +135,7 @@ void SIGCHLD_handler(int s){
 	int exitStatus, info, hasToBeDeleted, n = 0;
 	job* job = job_list->next;
 	enum status status_res;
-    pid_t pid;
+  	pid_t pid;
 	while(job != NULL){
 		hasToBeDeleted = 0;
 		pid = waitpid(job->pgid, &exitStatus, WNOHANG | WUNTRACED);
@@ -145,19 +145,22 @@ void SIGCHLD_handler(int s){
 				hasToBeDeleted = 1;
 				printf(" [%d]+ Done\n", n);
 			} else if(job->state != STOPPED && status_res == SUSPENDED) {
-                //Si se ha suspendido, hay que anotarlo y notificarlo
-                job->state = STOPPED;
-                printf(" - %d %s has been suspended\n", job->pgid, job->command);
-            }
+	                //Si se ha suspendido, hay que anotarlo y notificarlo
+        	        job->state = STOPPED;
+                	printf(" - %d %s has been suspended\n", job->pgid, job->command);
+	            } else if(job->state == STOPPED && status_res == CONTINUED) {
+        	        //Si se ha suspendido, hay que anotarlo y notificarlo
+                	job->state = BACKGROUND;
+	                printf(" - %d %s has been continued\n", job->pgid, job->command);
+        	    }
 		}
 		if(hasToBeDeleted) {
-            struct job_* jobToBeDeleted = job;
-            job = job->next;
-            delete_job(job_list, jobToBeDeleted);
-        } else {
-            job = job->next;
-        }
-        n++;
+	            struct job_* jobToBeDeleted = job;
+        	    job = job->next;
+	            delete_job(job_list, jobToBeDeleted);
+        	} else {
+	            job = job->next;
+        	}
+	        n++;
 	}
-
 }
