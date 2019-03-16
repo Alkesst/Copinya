@@ -1,5 +1,8 @@
 
 # Copinya shell
+Copinya shell is a custom unix shell made for the Operative System subject. Copinya means Shell in catalan. 
+Someday I will translate the whole readme. 
+
 
 ### Tasks
 1. Ejecutar comandos en bakground o foreground y mostrar su estado al terminar de ejecutarse los procesos en foreground. Añadir texto de estado de los procesos en Background.
